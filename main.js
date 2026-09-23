@@ -32,7 +32,11 @@ directional.position.set(1, 3, 2);
 scene.add(directional);
 
 document.body.appendChild(
-  ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] })
+  ARButton.createButton(renderer, {
+    requiredFeatures: ['hit-test'],
+    optionalFeatures: ['dom-overlay'],
+    domOverlay: { root: document.getElementById('ui') },
+  })
 );
 
 const reticle = new THREE.Mesh(
@@ -52,9 +56,22 @@ let hitTestSourceRequested = false;
 
 Promise.all(
   CAR_URLS.map(
-    (url) => new Promise((resolve, reject) => loader.load(url, (gltf) => resolve(gltf.scene), undefined, reject))
+    (url) =>
+      new Promise((resolve, reject) =>
+        loader.load(encodeURI(url), (gltf) => resolve(gltf.scene), undefined, reject)
+      )
   )
-).then((models) => carModels.push(...models));
+)
+  .then((models) => carModels.push(...models))
+  .catch((err) => showOnScreenError('Model load failed: ' + err.message));
+
+function showOnScreenError(message) {
+  const hint = document.getElementById('hint');
+  hint.style.display = 'block';
+  hint.textContent = message;
+}
+
+window.addEventListener('error', (e) => showOnScreenError('Error: ' + e.message));
 
 const joystickInput = { x: 0, y: 0 };
 nipplejs
