@@ -22,6 +22,7 @@ const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0); // keep background transparent so the AR camera feed shows through
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
 
