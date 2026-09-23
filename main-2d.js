@@ -1,24 +1,12 @@
 import * as THREE from 'three';
 import { ARButton } from 'three/addons/webxr/ARButton.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// Flat 2D cutout image placed upright in 3D space (not a billboard - keeps its facing so it can be viewed edge-on/from behind).
-// Add more image paths here to enable Prev/Next swapping.
-const IMAGE_URLS = ['assets/mushroom-house.jpeg'];
-const textureLoader = new THREE.TextureLoader();
-
-function createImagePlane(url) {
-  const texture = textureLoader.load(url, undefined, undefined, (err) =>
-    showMessage('Image load failed: ' + err.message)
-  );
-  const geometry = new THREE.PlaneGeometry(0.4, 0.5);
-  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
-  return new THREE.Mesh(geometry, material);
-}
+// Simple 2D AR: a flat image that always faces the viewer (billboard sprite).
+const IMAGE_URL = 'assets/mushroom-house.jpeg';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-camera.position.set(0, 2, 4);
+camera.position.set(0, 1.5, 3);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -27,10 +15,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x87ceeb, 1); // sky-blue background, visible while no camera feed is composited (AR) or in preview mode
 renderer.xr.enabled = true;
 document.body.appendChild(renderer.domElement);
-
-const orbitControls = new OrbitControls(camera, renderer.domElement);
-orbitControls.enabled = false;
-orbitControls.target.set(0, 0.25, 0);
 
 const hint = document.getElementById('hint');
 function showMessage(message) {
@@ -77,7 +61,11 @@ const groundGrid = new THREE.GridHelper(10, 20);
 groundGrid.visible = false;
 scene.add(groundGrid);
 
-let currentImageIndex = 0;
+const texture = new THREE.TextureLoader().load(IMAGE_URL, undefined, undefined, (err) =>
+  showMessage('Image load failed: ' + err.message)
+);
+const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+
 let placedImage = null;
 let hitTestSource = null;
 let hitTestSourceRequested = false;
@@ -96,37 +84,26 @@ nipplejs
     joystickInput.y = 0;
   });
 
-function placeImage(index, position) {
+function placeImage(position) {
   if (placedImage) scene.remove(placedImage);
-  currentImageIndex = index;
-  placedImage = createImagePlane(IMAGE_URLS[index]);
+  placedImage = new THREE.Sprite(spriteMaterial);
+  placedImage.scale.set(0.4, 0.5, 1);
   placedImage.position.copy(position);
   scene.add(placedImage);
   hint.style.display = 'none';
 }
-
-document.getElementById('next-btn').addEventListener('click', () => {
-  if (!placedImage) return;
-  placeImage((currentImageIndex + 1) % IMAGE_URLS.length, placedImage.position);
-});
-
-document.getElementById('prev-btn').addEventListener('click', () => {
-  if (!placedImage) return;
-  placeImage((currentImageIndex - 1 + IMAGE_URLS.length) % IMAGE_URLS.length, placedImage.position);
-});
 
 // --- AR (camera passthrough) mode ---
 
 renderer.xr.addEventListener('sessionstart', () => {
   const session = renderer.xr.getSession();
   session.addEventListener('select', () => {
-    if (!reticle.visible || placedImage) return;
-    const position = new THREE.Vector3().setFromMatrixPosition(reticle.matrix);
-    placeImage(currentImageIndex, position);
+    if (!reticle.visible) return;
+    placeImage(new THREE.Vector3().setFromMatrixPosition(reticle.matrix));
   });
 });
 
-// --- Preview mode (virtual ground plane, no camera, orbit to view from any angle) ---
+// --- Preview mode (virtual ground plane, no camera) ---
 
 const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
@@ -136,37 +113,31 @@ previewButton.addEventListener('click', () => {
   previewMode = true;
   previewButton.style.display = 'none';
   groundGrid.visible = true;
-  showMessage('Tap the ground to place it, then drag to orbit around it');
+  showMessage('Tap the ground to place the mushroom house');
 });
 
 function onPreviewTap(clientX, clientY) {
-  if (!previewMode || placedImage) return;
+  if (!previewMode) return;
 
   pointerNdc.x = (clientX / window.innerWidth) * 2 - 1;
   pointerNdc.y = -(clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointerNdc, camera);
 
   if (raycaster.ray.intersectPlane(groundPlane, previewHitPoint)) {
-    placeImage(currentImageIndex, previewHitPoint);
-    orbitControls.target.copy(previewHitPoint);
-    orbitControls.enabled = true;
+    placeImage(previewHitPoint);
   }
 }
 
 renderer.domElement.addEventListener('pointerdown', (e) => onPreviewTap(e.clientX, e.clientY));
 
-// --- Shared driving logic ---
+// --- Joystick drives the placed image around ---
 
 const moveSpeed = 0.5;
-const turnSpeed = 1.2;
-const heading = new THREE.Quaternion();
 
 function driveImage(deltaSeconds) {
   if (!placedImage) return;
-
-  heading.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -joystickInput.x * turnSpeed * deltaSeconds));
-  const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(heading);
-  placedImage.position.addScaledVector(forward, joystickInput.y * moveSpeed * deltaSeconds);
+  placedImage.position.x += joystickInput.x * moveSpeed * deltaSeconds;
+  placedImage.position.z -= joystickInput.y * moveSpeed * deltaSeconds;
 }
 
 const clock = new THREE.Clock();
@@ -203,7 +174,6 @@ renderer.setAnimationLoop((timestamp, frame) => {
     }
   }
 
-  if (previewMode) orbitControls.update();
   driveImage(delta);
   renderer.render(scene, camera);
 });
@@ -213,3 +183,4 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
