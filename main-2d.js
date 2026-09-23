@@ -148,6 +148,7 @@ function onPreviewTap(clientX, clientY) {
 
   if (raycaster.ray.intersectPlane(groundPlane, previewHitPoint)) {
     placeImage(currentImageIndex, previewHitPoint);
+    orbitControls.target.copy(previewHitPoint);
     orbitControls.enabled = true;
   }
 }
