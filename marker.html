@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>LunarGarden Marker AR</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+
+    #ui {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      font-family: sans-serif;
+      z-index: 10;
+    }
+
+    #joystick-zone {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      width: 140px;
+      height: 140px;
+      pointer-events: auto;
+    }
+
+    #hint {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      max-width: 90%;
+    }
+
+    #marker-link {
+      color: #9cf;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <div id="hint">
+      Print or display the
+      <a id="marker-link" href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank">Hiro marker</a>,
+      then point your camera at it
+    </div>
+    <div id="joystick-zone"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.10.1/dist/nipplejs.min.js"></script>
+  <script src="marker-controls.js"></script>
+
+  <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix;" vr-mode-ui="enabled: false">
+    <a-assets>
+      <img id="house-img" src="assets/mushroom-house.jpeg" crossorigin="anonymous" />
+    </a-assets>
+
+    <a-marker preset="hiro">
+      <a-image id="house" src="#house-img" width="1" height="1.25" position="0 0.6 0" rotation="-90 0 0" house-joystick-drive></a-image>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+</body>
+</html>
