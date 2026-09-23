@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>LunarGarden Web AR - 2D Emoji</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; }
+
+    #ui { position: fixed; inset: 0; pointer-events: none; font-family: sans-serif; }
+
+    #joystick-zone {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      width: 140px;
+      height: 140px;
+      pointer-events: auto;
+    }
+
+    #car-buttons {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    #car-buttons button {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    #hint {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <div id="hint">Point at a flat surface, then tap it to place the emoji</div>
+    <div id="joystick-zone"></div>
+    <div id="car-buttons">
+      <button id="prev-btn">&#8592;</button>
+      <button id="next-btn">&#8594;</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.10.1/dist/nipplejs.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="main-2d.js"></script>
+</body>
+</html>
