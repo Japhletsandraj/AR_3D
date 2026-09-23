@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // Flat 2D cutout image placed upright in 3D space (not a billboard - keeps its facing so it can be viewed edge-on/from behind).
 // Add more image paths here to enable Prev/Next swapping.
-const IMAGE_URLS = ['assets/mushroom-house.png'];
+const IMAGE_URLS = ['assets/mushroom-house.jpeg'];
 const textureLoader = new THREE.TextureLoader();
 
 function createImagePlane(url) {
